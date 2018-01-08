@@ -12,12 +12,14 @@ repositories {
 }
 
 ext {
+    apacheCommonsVersion = '3.7'
     slf4jVersion = '1.7.25'
     log4jVersion = '2.10.0'
     kafkaVersion = '1.0.0'
 }
 
 dependencies {
+    implementation "org.apache.commons:commons-lang3:${apacheCommonsVersion}"
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
     implementation "org.apache.logging.log4j:log4j-api:${log4jVersion}"
     implementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
