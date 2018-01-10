@@ -1,6 +1,5 @@
-package connector;
+package source.connector;
 
-import config.ImageSourceConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.utils.AppInfoParser;
@@ -9,18 +8,18 @@ import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import task.ImageSourceTask;
+import source.task.HexGraphSourceTask;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static config.ImageSourceConfig.FOLDER_NAME;
-import static config.ImageSourceConfig.TOPIC_NAME;
+import static source.config.HexGraphSourceConnectorConfig.FOLDER_NAME;
+import static source.config.HexGraphSourceConnectorConfig.TOPIC_NAME;
 
-public class ImageSourceConnector extends SourceConnector {
-    public static Logger LOG = LoggerFactory.getLogger(ImageSourceConnector.class);
+public class HexGraphSourceConnector extends SourceConnector {
+    public static Logger LOG = LoggerFactory.getLogger(HexGraphSourceConnector.class);
 
     private String topic;
     private String folderName;
@@ -48,7 +47,7 @@ public class ImageSourceConnector extends SourceConnector {
 
     @Override
     public Class<? extends Task> taskClass() {
-        return ImageSourceTask.class;
+        return HexGraphSourceTask.class;
     }
 
     @Override
@@ -70,6 +69,8 @@ public class ImageSourceConnector extends SourceConnector {
 
     @Override
     public ConfigDef config() {
-        return null;
+        return new ConfigDef()
+                .define(TOPIC_NAME, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Topic name")
+                .define(FOLDER_NAME, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Folder name");
     }
 }

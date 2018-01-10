@@ -23,3 +23,7 @@ hs_err_pid*
 
 # others
 .idea
+.gradle
+build/
+*.iml
+.DS_Store

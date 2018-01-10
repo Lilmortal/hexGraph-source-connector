@@ -16,6 +16,8 @@ ext {
     slf4jVersion = '1.7.25'
     log4jVersion = '2.10.0'
     kafkaVersion = '1.0.0'
+
+    jUnitVersion = '3.8.2'
 }
 
 dependencies {
@@ -27,5 +29,13 @@ dependencies {
     implementation "org.apache.kafka:kafka_2.12:${kafkaVersion}"
     implementation "org.apache.kafka:connect-api:${kafkaVersion}"
 
-    testImplementation 'junit:junit:3.8.2'
+    testImplementation "junit:junit:${jUnitVersion}"
+}
+
+String mainClass = 'source.HexGraphSourceConnectorApplication'
+
+jar {
+    manifest {
+        attributes 'Main-Class': mainClass
+    }
 }
