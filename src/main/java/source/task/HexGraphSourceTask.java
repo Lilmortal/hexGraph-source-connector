@@ -1,11 +1,18 @@
 package source.task;
 
+import org.apache.kafka.connect.data.Schema;
+import scala.Int;
 import source.connector.HexGraphSourceConnector;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +46,37 @@ public class HexGraphSourceTask extends SourceTask {
 
     @Override
     public List<SourceRecord> poll() throws InterruptedException {
-        return null;
+        File directory = new File(folderName);
+
+        if (!directory.isDirectory()) {
+            throw new RuntimeException(directory.getName() + " is not a directory.");
+        }
+
+        File[] files = directory.listFiles();
+
+        List<SourceRecord> sourceRecords = new ArrayList<>();
+
+        for (File file : files) {
+            try {
+                if (ImageIO.read(file) == null) {
+                    LOG.info(file.getName() + " is not an image.");
+                    continue;
+                }
+
+                LOG.info(file.getName());
+                BufferedImage bufferedImage = ImageIO.read(file);
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+                ImageIO.write(bufferedImage, "jpg", byteArrayOutputStream);
+                byte[] imageBytes = byteArrayOutputStream.toByteArray();
+
+                sourceRecords.add(new SourceRecord(Collections.emptyMap(), Collections.emptyMap(), topic, Schema.BYTES_SCHEMA, imageBytes));
+            } catch (IOException e) {
+                LOG.error(e.getMessage());
+            }
+        }
+
+        return sourceRecords;
     }
 
     @Override
