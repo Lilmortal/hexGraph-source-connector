@@ -63,14 +63,9 @@ public class HexGraphSourceTask extends SourceTask {
                     continue;
                 }
 
-                LOG.info(file.getName());
-                BufferedImage bufferedImage = ImageIO.read(file);
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                LOG.info(file.getName() + " " + file.getCanonicalPath());
 
-                ImageIO.write(bufferedImage, "jpg", byteArrayOutputStream);
-                byte[] imageBytes = byteArrayOutputStream.toByteArray();
-
-                sourceRecords.add(new SourceRecord(Collections.emptyMap(), Collections.emptyMap(), topic, Schema.BYTES_SCHEMA, imageBytes));
+                sourceRecords.add(new SourceRecord(Collections.emptyMap(), Collections.emptyMap(), topic, Schema.STRING_SCHEMA, file.getCanonicalPath()));
             } catch (IOException e) {
                 LOG.error(e.getMessage());
             }
