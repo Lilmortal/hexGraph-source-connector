@@ -1,7 +1,7 @@
 package source.task;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.kafka.connect.data.Schema;
-import scala.Int;
 import source.connector.HexGraphSourceConnector;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
@@ -9,14 +9,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static source.config.HexGraphSourceConnectorConfig.FOLDER_NAME;
+import static source.config.HexGraphSourceConnectorConfig.DIRECTORY_SINK;
+import static source.config.HexGraphSourceConnectorConfig.DIRECTORY_SOURCE;
 import static source.config.HexGraphSourceConnectorConfig.TOPIC_NAME;
 
 /*
@@ -29,7 +29,8 @@ public class HexGraphSourceTask extends SourceTask {
     public static final Logger LOG = LoggerFactory.getLogger(HexGraphSourceTask.class);
 
     private String topic;
-    private String folderName;
+    private String directorySourceName;
+    private String directorySinkName;
 
     @Override
     public String version() {
@@ -41,31 +42,34 @@ public class HexGraphSourceTask extends SourceTask {
         LOG.info("Image source task starting.");
 
         topic = props.get(TOPIC_NAME);
-        folderName = props.get(FOLDER_NAME);
+        directorySourceName = props.get(DIRECTORY_SOURCE);
+        directorySinkName = props.get(DIRECTORY_SINK);
     }
 
     @Override
     public List<SourceRecord> poll() throws InterruptedException {
-        File directory = new File(folderName);
+        File sourceDirectory = new File(directorySourceName);
+        File sinkDirectory = new File(directorySinkName);
 
-        if (!directory.isDirectory()) {
-            throw new RuntimeException(directory.getName() + " is not a directory.");
+        if (!sourceDirectory.isDirectory()) {
+            throw new RuntimeException(sourceDirectory.getName() + " is not a directory.");
         }
 
-        File[] files = directory.listFiles();
+        File[] sourceFiles = sourceDirectory.listFiles();
 
         List<SourceRecord> sourceRecords = new ArrayList<>();
 
-        for (File file : files) {
+        for (File sourceFile : sourceFiles) {
             try {
-                if (ImageIO.read(file) == null) {
-                    LOG.info(file.getName() + " is not an image.");
+                if (ImageIO.read(sourceFile) == null) {
+                    LOG.info(sourceFile.getName() + " is not an image.");
                     continue;
                 }
 
-                LOG.info(file.getName() + " " + file.getCanonicalPath());
+                LOG.info(sourceFile.getName() + " " + sourceFile.getCanonicalPath());
 
-                sourceRecords.add(new SourceRecord(Collections.emptyMap(), Collections.emptyMap(), topic, Schema.STRING_SCHEMA, file.getCanonicalPath()));
+                sourceRecords.add(new SourceRecord(Collections.emptyMap(), Collections.emptyMap(), topic, Schema.STRING_SCHEMA, sourceFile.getCanonicalPath()));
+                FileUtils.moveFileToDirectory(sourceFile, sinkDirectory, true);
             } catch (IOException e) {
                 LOG.error(e.getMessage());
             }
