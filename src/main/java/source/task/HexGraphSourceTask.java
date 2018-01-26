@@ -10,12 +10,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static source.config.HexGraphSourceConnectorConfig.DIRECTORY_SINK;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static source.config.HexGraphSourceConnectorConfig.DIRECTORY_SOURCE;
 import static source.config.HexGraphSourceConnectorConfig.TOPIC_NAME;
 
@@ -30,7 +31,6 @@ public class HexGraphSourceTask extends SourceTask {
 
     private String topic;
     private String directorySourceName;
-    private String directorySinkName;
 
     @Override
     public String version() {
@@ -43,13 +43,11 @@ public class HexGraphSourceTask extends SourceTask {
 
         topic = props.get(TOPIC_NAME);
         directorySourceName = props.get(DIRECTORY_SOURCE);
-        directorySinkName = props.get(DIRECTORY_SINK);
     }
 
     @Override
     public List<SourceRecord> poll() throws InterruptedException {
         File sourceDirectory = new File(directorySourceName);
-        File sinkDirectory = new File(directorySinkName);
 
         if (!sourceDirectory.isDirectory()) {
             throw new RuntimeException(sourceDirectory.getName() + " is not a directory.");
@@ -61,21 +59,38 @@ public class HexGraphSourceTask extends SourceTask {
 
         for (File sourceFile : sourceFiles) {
             try {
+                LOG.info("File: " + sourceFile.getCanonicalPath());
                 if (ImageIO.read(sourceFile) == null) {
                     LOG.info(sourceFile.getName() + " is not an image.");
+                    sourceFile.delete();
                     continue;
                 }
 
-                LOG.info(sourceFile.getName() + " " + sourceFile.getCanonicalPath());
+                File sinkDirectory = new File(sourceDirectory.getCanonicalPath() + "_sink");
+                boolean hasFileMoved = moveFile(sourceFile, sinkDirectory);
+                if (!hasFileMoved) {
+                    throw new RuntimeException(sourceFile.getCanonicalPath() + "failed to move.");
+                }
 
-                sourceRecords.add(new SourceRecord(Collections.emptyMap(), Collections.emptyMap(), topic, Schema.STRING_SCHEMA, sourceFile.getCanonicalPath()));
-                FileUtils.moveFileToDirectory(sourceFile, sinkDirectory, true);
+                sourceRecords.add(new SourceRecord(Collections.emptyMap(), Collections.emptyMap(), topic, Schema.STRING_SCHEMA, sinkDirectory.getCanonicalPath() + File.separator + sourceFile.getName()));
             } catch (IOException e) {
                 LOG.error(e.getMessage());
             }
         }
 
         return sourceRecords;
+    }
+
+    private boolean moveFile(File sourceFile, File sinkDirectory) throws IOException {
+        FileUtils.copyFileToDirectory(sourceFile, sinkDirectory, true);
+        LOG.info("Copied source file " + sourceFile.getCanonicalPath() + " to " + sinkDirectory.getCanonicalPath() + File.separator + sourceFile.getName() + ".");
+
+        if (new File(sinkDirectory.getCanonicalPath() + File.separator + sourceFile.getName()).exists()) {
+            sourceFile.delete();
+            LOG.info(sourceFile.getCanonicalPath() + " deleted.");
+            return true;
+        }
+        return false;
     }
 
     @Override

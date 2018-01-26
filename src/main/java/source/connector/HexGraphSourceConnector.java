@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static source.config.HexGraphSourceConnectorConfig.DIRECTORY_SINK;
 import static source.config.HexGraphSourceConnectorConfig.DIRECTORY_SOURCE;
 import static source.config.HexGraphSourceConnectorConfig.TOPIC_NAME;
 
@@ -24,7 +23,6 @@ public class HexGraphSourceConnector extends SourceConnector {
 
     private String topic;
     private String directorySourceName;
-    private String directorySinkName;
 
     @Override
     public String version() {
@@ -37,7 +35,6 @@ public class HexGraphSourceConnector extends SourceConnector {
 
         topic = props.get(TOPIC_NAME);
         directorySourceName = props.get(DIRECTORY_SOURCE);
-        directorySinkName = props.get(DIRECTORY_SINK);
 
         if (StringUtils.isBlank(topic)) {
             throw new ConnectException("Topic must not be empty.");
@@ -45,10 +42,6 @@ public class HexGraphSourceConnector extends SourceConnector {
 
         if (StringUtils.isBlank(directorySourceName)) {
             throw new ConnectException("Directory source name must not be empty.");
-        }
-
-        if (StringUtils.isBlank(directorySinkName)) {
-            throw new ConnectException("Directory sink name must not be empty.");
         }
     }
 
@@ -64,7 +57,6 @@ public class HexGraphSourceConnector extends SourceConnector {
         Map<String, String> config = new HashMap<>();
         config.put(TOPIC_NAME, topic);
         config.put(DIRECTORY_SOURCE, directorySourceName);
-        config.put(DIRECTORY_SINK, directorySinkName);
 
         configs.add(config);
         return configs;
@@ -79,7 +71,6 @@ public class HexGraphSourceConnector extends SourceConnector {
     public ConfigDef config() {
         return new ConfigDef()
                 .define(TOPIC_NAME, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Topic name")
-                .define(DIRECTORY_SOURCE, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Directory source name")
-                .define(DIRECTORY_SINK, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Directory sink name");
+                .define(DIRECTORY_SOURCE, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "Directory source name");
     }
 }
