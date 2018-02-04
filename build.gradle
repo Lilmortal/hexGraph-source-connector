@@ -35,14 +35,6 @@ dependencies {
     testImplementation "junit:junit:${jUnitVersion}"
 }
 
-String mainClass = 'source.HexGraphSourceConnectorApplication'
-
-jar {
-    manifest {
-        attributes 'Main-Class': mainClass
-    }
-}
-
 task wrapper(type: Wrapper) {
     gradleVersion = '4.1' //version required
 }
