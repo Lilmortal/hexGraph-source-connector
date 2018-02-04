@@ -23,7 +23,12 @@ hs_err_pid*
 
 # others
 .idea
-.gradle
+./*gradle*
+./*.gradle/**
+**/.gradle
 build/
 *.iml
 .DS_Store
+.gradle/4.1
+gradlew
+gradlew.bat
