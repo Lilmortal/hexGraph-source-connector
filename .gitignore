@@ -32,3 +32,5 @@ build/
 .gradle/4.1
 gradlew
 gradlew.bat
+
+*.swp
